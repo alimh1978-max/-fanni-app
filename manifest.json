@@ -1,0 +1,39 @@
+{
+  "background_color": "#ffffff",
+  "dir": "rtl",
+  "display": "standalone",
+  "name": "فني",
+  "orientation": "portrait",
+  "scope": "/",
+  "short_name": "فني",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "https://zingy-boba-13b392.netlify.app/icon.png",
+      "type": "image/png",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    },
+    {
+      "src": "https://zingy-boba-13b392.netlify.app/favicon.ico",
+      "type": "image/x-icon",
+      "isSquare": false,
+      "isPng": false,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 0,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ],
+  "description": "منصة فني توفر عليك عناء البحث عن فنيين موثقين",
+  "lang": "ar"
+}

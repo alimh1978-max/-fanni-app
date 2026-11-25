@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فني</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .bg-light-theme { background: linear-gradient(180deg, #f8fafc 0%, #e0f2fe 100%); }
+        .dark .bg-light-theme { background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%); }
+    </style>
+</head>
+<body class="bg-light-theme text-slate-800 dark:text-white min-h-screen flex flex-col justify-between max-w-md mx-auto shadow-2xl relative overflow-x-hidden">
+
+    <!-- إشعار التأكيد العلوي -->
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-emerald-500 text-white px-5 py-3 rounded-2xl shadow-xl font-bold text-xs flex items-center space-x-2 space-x-reverse transition-all duration-300 opacity-0 pointer-events-none translate-y-[-20px]">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toast-message">تم الحفظ بنجاح!</span>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="p-5 space-y-5 pb-24">
+        
+        <!-- الهيدر -->
+        <header class="flex justify-between items-center pt-2">
+            <button onclick="openCustomerLoginModal()" id="customer-header-btn" title="تسجيل الدخول كعميل" class="px-3 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center space-x-1.5 space-x-reverse shadow-sm hover:scale-105 transition text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span id="customer-btn-label">دخول عميل</span>
+            </button>
+
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">فني</h1>
+            </div>
+
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <button onclick="openTechRegisterModal()" title="تسجيل حساب فني" class="px-2.5 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center space-x-1 space-x-reverse shadow-sm hover:scale-105 transition text-xs font-bold text-sky-600 dark:text-sky-400">
+                    <span>فني</span>
+                </button>
+                <button id="theme-toggle" title="تغيير المظهر" class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm hover:scale-105 transition">
+                    <svg id="sun-icon" class="w-5 h-5 text-amber-400 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path></svg>
+                    <svg id="moon-icon" class="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- شريط حالة حساب العميل -->
+        <div id="customer-session-banner" class="hidden bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
+            <div>
+                <span class="font-bold text-emerald-700 dark:text-emerald-300">حساب عميل نشط: </span>
+                <span id="active-customer-info" class="font-semibold text-slate-700 dark:text-slate-200"></span>
+            </div>
+            <button onclick="logoutCustomer()" class="text-rose-600 dark:text-rose-400 font-bold hover:underline">خروج</button>
+        </div>
+
+        <!-- شريط البحث الشامل لكل المهن والخدمات -->
+        <div class="relative">
+            <input type="text" id="search-input" placeholder="ابحث عن إنترنت، كهرباء، سباكة، اسم، مدينة، أو منطقة..." 
+                class="w-full bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 px-5 pr-11 pl-10 text-sm text-slate-800 dark:text-white placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-400 transition">
+            <svg class="w-5 h-5 text-slate-400 dark:text-sky-400 absolute right-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <button id="clear-search" onclick="clearSearch()" title="مسح البحث" class="hidden text-slate-400 hover:text-slate-700 dark:hover:text-white absolute left-3.5 top-3.5 text-xs font-bold">
+                ✕
+            </button>
+        </div>
+
+        <!-- الأقسام السريعة -->
+        <section>
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xs font-bold text-slate-500 dark:text-slate-400">خدمات سريعة</h2>
+                <button onclick="resetFilters()" id="reset-filter" class="text-xs font-bold text-sky-500 hidden hover:underline">إعادة ضبط الكل</button>
+            </div>
+            <div class="grid grid-cols-4 gap-3 text-center">
+                <button onclick="filterCategory('كهرباء')" class="category-btn flex flex-col items-center group" data-cat="كهرباء">
+                    <div class="w-16 h-16 rounded-full bg-sky-400 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition ring-offset-2 dark:ring-offset-slate-900">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-2">كهرباء</span>
+                </button>
+
+                <button onclick="filterCategory('سباكة')" class="category-btn flex flex-col items-center group" data-cat="سباكة">
+                    <div class="w-16 h-16 rounded-full bg-amber-300 text-slate-800 flex items-center justify-center shadow-md group-hover:scale-105 transition ring-offset-2 dark:ring-offset-slate-900">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-2">سباكة</span>
+                </button>
+
+                <button onclick="filterCategory('حدادة')" class="category-btn flex flex-col items-center group" data-cat="حدادة">
+                    <div class="w-16 h-16 rounded-full bg-emerald-400 text-slate-800 flex items-center justify-center shadow-md group-hover:scale-105 transition ring-offset-2 dark:ring-offset-slate-900">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z"></path></svg>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-2">حدادة</span>
+                </button>
+
+                <button onclick="filterCategory('تكييف')" class="category-btn flex flex-col items-center group" data-cat="تكييف">
+                    <div class="w-16 h-16 rounded-full bg-rose-400 text-white flex items-center justify-center shadow-md group-hover:scale-105 transition ring-offset-2 dark:ring-offset-slate-900">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v18m0-18l-4 4m4-4l4 4m-4 14l-4-4m4 4l4-4M3 12h18M3 12l4-4m-4 4l4 4m14-4l-4-4m4 4l-4 4"></path></svg>
+                    </div>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 mt-2">تكييف</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- قائمة الفنيين وعدد النتائج -->
+        <section class="space-y-3">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xs font-bold text-slate-500 dark:text-slate-400">الفنيون ومقدمو الخدمات</h2>
+                <span id="results-count" class="text-[11px] font-bold text-slate-400"></span>
+            </div>
+            <div id="technicians-list" class="space-y-3"></div>
+        </section>
+
+    </div>
+
+    <!-- شريط التنقل السفلي -->
+    <nav class="fixed bottom-0 w-full max-w-md bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center rounded-t-3xl shadow-lg z-30">
+        <a href="#" onclick="resetFilters()" class="flex flex-col items-center text-slate-900 dark:text-fuchsia-400 font-bold">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+            <span class="text-[11px] mt-1">الرئيسية</span>
+        </a>
+        <button onclick="openCustomerLoginModal()" class="flex flex-col items-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span class="text-[11px] mt-1 font-medium">حساب العميل</span>
+        </button>
+        <button onclick="openLegalModal()" class="flex flex-col items-center text-slate-400 hover:text-slate-700 dark:hover:text-white transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            <span class="text-[11px] mt-1 font-medium">الخصوصية</span>
+        </button>
+    </nav>
+
+    <!-- نافذة تسجيل الدخول كعميل -->
+    <div id="customer-login-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-40 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl p-5 shadow-2xl border border-slate-100 dark:border-slate-700 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3">
+                <div>
+                    <span class="text-[11px] font-bold text-emerald-500">حساب طالب الخدمة</span>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">تسجيل الدخول كعميل</h3>
+                </div>
+                <button onclick="closeCustomerLoginModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300">✕</button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold mb-1">الاسم الكامل</label>
+                    <input id="cust-name" type="text" placeholder="مثال: عبد الله سالم" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">رقم الهاتف</label>
+                    <input id="cust-phone" type="tel" placeholder="09xxxxxxxx" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold mb-1">المدينة</label>
+                        <input id="cust-city" type="text" placeholder="مثال: مصراتة" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">المنطقة</label>
+                        <input id="cust-area" type="text" placeholder="مثال: وسط المدينة" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                    </div>
+                </div>
+
+                <label class="flex items-start space-x-2 space-x-reverse pt-1 cursor-pointer">
+                    <input id="agree-customer-terms" type="checkbox" class="mt-1 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500">
+                    <span class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                        أوافق على <button type="button" onclick="openLegalModal()" class="text-emerald-600 dark:text-emerald-400 font-bold underline">شروط الاستخدام وسياسة الخصوصية</button> وأقر بأن المنصة وسيط وأن تقييمي وتعاملي يخضعان لقواعد المنصة.
+                    </span>
+                </label>
+            </div>
+
+            <button onclick="submitCustomerLogin()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl shadow-md transition text-sm">
+                دخول إلى حساب العميل
+            </button>
+        </div>
+    </div>
+
+    <!-- نافذة تسجيل حساب فني -->
+    <div id="tech-register-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-40 hidden flex items-end sm:items-center justify-center p-3">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl p-5 shadow-2xl border border-slate-100 dark:border-slate-700 space-y-3.5 max-h-[92vh] overflow-y-auto">
+            
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3">
+                <div>
+                    <span class="text-[11px] font-bold text-sky-500">إدارة الحساب والبيانات</span>
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">تسجيل حساب فني</h3>
+                </div>
+                <button onclick="closeTechRegisterModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300">✕</button>
+            </div>
+
+            <div class="space-y-2.5 text-xs">
+                <div>
+                    <label class="block font-bold mb-1">الاسم الرباعي (كما في البطاقة الشخصية)</label>
+                    <input id="reg-fullname" type="text" placeholder="مثال: محمد علي أحمد الزليتني" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1">رقم الهاتف</label>
+                    <input id="reg-phone" type="tel" placeholder="09xxxxxxxx" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold mb-1">المدينة</label>
+                        <input id="reg-city" type="text" placeholder="مثال: مصراتة" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">المنطقة</label>
+                        <input id="reg-area" type="text" placeholder="مثال: وسط المدينة" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1">التخصص / الخدمة</label>
+                    <input id="reg-specialty" type="text" placeholder="كهرباء، سباكة، حدادة، تكييف، إنترنت..." class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1">أبرز الخدمات المقدمة (افصل بفاصلة)</label>
+                    <input id="reg-services" type="text" placeholder="تمديد أسلاك، صيانة أعطال، ضبط راوتر" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5">
+                </div>
+
+                <!-- التحقق الحي بالكاميرا -->
+                <div class="bg-slate-50 dark:bg-slate-900/70 p-3 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-slate-800 dark:text-slate-200">التحقق بالصورة الحية (الكاميرا)</span>
+                        <span class="text-[10px] text-amber-600 dark:text-amber-400 font-bold">لمطابقة الهوية</span>
+                    </div>
+
+                    <video id="camera-stream" autoplay playsinline class="w-full h-40 object-cover rounded-xl bg-black hidden"></video>
+                    <canvas id="camera-canvas" class="hidden"></canvas>
+                    <img id="captured-selfie" alt="الصورة الملتقطة" class="w-32 h-32 object-cover rounded-2xl mx-auto border-2 border-emerald-400 hidden">
+
+                    <div class="flex gap-2">
+                        <button type="button" id="start-cam-btn" onclick="startCamera()" class="flex-1 bg-sky-500 hover:bg-sky-600 text-white font-bold py-2 rounded-xl transition">
+                            تشغيل الكاميرا
+                        </button>
+                        <button type="button" id="snap-btn" onclick="takeSelfie()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 rounded-xl transition hidden">
+                            التقاط صورة
+                        </button>
+                    </div>
+                </div>
+
+                <label class="flex items-start space-x-2 space-x-reverse pt-1 cursor-pointer">
+                    <input id="agree-terms" type="checkbox" class="mt-1 rounded border-slate-300 text-fuchsia-500 focus:ring-fuchsia-500">
+                    <span class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                        أوافق على <button type="button" onclick="openLegalModal()" class="text-fuchsia-500 font-bold underline">شروط الاستخدام وسياسة الخصوصية</button>، وأقر بصحة بياناتي والصورة الحية لمنع انتحال الهوية.
+                    </span>
+                </label>
+            </div>
+
+            <button onclick="submitTechnicianRegistration()" class="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-bold py-3 rounded-2xl shadow-md transition text-sm">
+                إرسال طلب التسجيل
+            </button>
+        </div>
+    </div>
+
+    <!-- نافذة الشروط والأحكام وسياسة الخصوصية -->
+    <div id="legal-modal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl p-5 shadow-2xl border border-slate-100 dark:border-slate-700 space-y-3 max-h-[85vh] overflow-y-auto text-xs">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-2.5">
+                <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">شروط الاستخدام وسياسة الخصوصية - منصة فني</h3>
+                <button onclick="closeLegalModal()" class="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center">✕</button>
+            </div>
+
+            <div class="space-y-2.5 text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p><strong class="text-slate-900 dark:text-white">1. طبيعة المنصة (وسيط):</strong> يعمل تطبيق "فني" كمنصة وساطة ودليل يربط طالبي الخدمات بالفنيين ومقدمي الخدمات؛ ولا يُعد طرفاً مباشراً في تنفيذ العمل أو الاتفاق المالي النهائي بين العميل والفني.</p>
+                <p><strong class="text-slate-900 dark:text-white">2. الموافقة عند التسجيل:</strong> يجب على كل من العميل والفني الموافقة على هذه الشروط وسياسة الخصوصية قبل إتمام التسجيل واستخدام المنصة.</p>
+                <p><strong class="text-slate-900 dark:text-white">3. التحقق والبيانات والصورة الحية:</strong> تُطلب البيانات الشخصية ورقم الهاتف والصورة الحية عبر الكاميرا للتحقق من هوية مقدم الخدمة ومنع انتحال الحسابات أو تكرار التسجيل ببيانات مضللة.</p>
+                <p><strong class="text-slate-900 dark:text-white">4. التقييم المتبادل:</strong> يعتمد النظام على تقييم رباعي للفني (سرعة الأداء، المواعيد، جودة العمل، السعر) وتقييم للزبون لضمان الشفافية وجودة التعامل.</p>
+            </div>
+
+            <button onclick="closeLegalModal()" class="w-full bg-slate-900 dark:bg-sky-500 text-white font-bold py-2.5 rounded-xl mt-2">
+                إغلاق
+            </button>
+        </div>
+    </div>
+
+    <!-- نافذة التقييم المتبادل -->
+    <div id="rating-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-3xl p-5 shadow-2xl border border-slate-100 dark:border-slate-700 space-y-4 max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-700 pb-3">
+                <div>
+                    <span class="text-[11px] font-bold text-fuchsia-500">تقييم متبادل شفاف</span>
+                    <h3 id="modal-tech-title" class="text-base font-extrabold text-slate-900 dark:text-white">أحمد محمد الزليتني</h3>
+                </div>
+                <button onclick="closeRatingModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300">✕</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-900 p-1 rounded-2xl text-xs font-bold">
+                <button id="tab-rate-tech" onclick="switchTab('tech')" class="py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm transition">
+                    تقييم الفني
+                </button>
+                <button id="tab-rate-customer" onclick="switchTab('customer')" class="py-2 rounded-xl text-slate-500 dark:text-slate-400 transition">
+                    تقييم الزبون
+                </button>
+            </div>
+
+            <div id="form-rate-tech" class="space-y-3">
+                <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                    <span class="text-xs font-bold">سرعة الأداء</span>
+                    <select id="rate-speed" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs font-bold">
+                        <option value="5">5 ★ ممتاز</option>
+                        <option value="4">4 ★ جيد جداً</option>
+                        <option value="3">3 ★ مقبول</option>
+                        <option value="2">2 ★ بطيء</option>
+                        <option value="1">1 ★ ضعيف</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                    <span class="text-xs font-bold">الالتزام بالمواعيد</span>
+                    <select id="rate-punctuality" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs font-bold">
+                        <option value="5">5 ★ في الموعد تماماً</option>
+                        <option value="4">4 ★ تأخير بسيط</option>
+                        <option value="3">3 ★ مقبول</option>
+                        <option value="2">2 ★ متأخر</option>
+                        <option value="1">1 ★ غير ملتزم</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                    <span class="text-xs font-bold">جودة العمل</span>
+                    <select id="rate-quality" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs font-bold">
+                        <option value="5">5 ★ إتقان عالٍ</option>
+                        <option value="4">4 ★ جيدة جداً</option>
+                        <option value="3">3 ★ مقبولة</option>
+                        <option value="2">2 ★ تحتاج متابعة</option>
+                        <option value="1">1 ★ دون المستوى</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                    <span class="text-xs font-bold">السعر</span>
+                    <select id="rate-price" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs font-bold">
+                        <option value="5">5 ★ مناسب جداً وواضح</option>
+                        <option value="4">4 ★ جيد</option>
+                        <option value="3">3 ★ متوسط</option>
+                        <option value="2">2 ★ مرتفع قليلاً</option>
+                        <option value="1">1 ★ مبالغ فيه</option>
+                    </select>
+                </div>
+
+                <button onclick="submitTechRating()" class="w-full bg-fuchsia-500 hover:bg-fuchsia-600 text-white font-bold py-3 rounded-2xl shadow-md transition text-sm">
+                    اعتماد تقييم الفني
+                </button>
+            </div>
+
+            <div id="form-rate-customer" class="space-y-3 hidden">
+                <div>
+                    <label class="block text-xs font-bold mb-1">اسم أو رقم هاتف الزبون</label>
+                    <input id="customer-identifier" type="text" placeholder="مثال: 091-XXXXXXX أو اسم الزبون" 
+                        class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs">
+                </div>
+
+                <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                    <span class="text-xs font-bold">تقييم الزبون</span>
+                    <select id="customer-stars" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs font-bold">
+                        <option value="5">5 ★ ملتزم ومتعاون</option>
+                        <option value="4">4 ★ جيد</option>
+                        <option value="3">3 ★ مقبول</option>
+                        <option value="2">2 ★ تأخر في الموعد/الوصف</option>
+                        <option value="1">1 ★ صعب التعامل</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold mb-1">ملاحظة مختصرة للزبون</label>
+                    <input id="customer-note" type="text" placeholder="مثال: وصف العطل بدقة والتزم بالموعد" 
+                        class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-xs">
+                </div>
+
+                <button onclick="submitCustomerRating()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-2xl shadow-md transition text-sm">
+                    حفظ تقييم الزبون
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://ffeefomyzcuyerltusoz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZWVmb215emN1eWVybHR1c296Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUzNzIyODEsImV4cCI6MjExMDk0ODI4MX0.cEvevt-hCS7dHRPlzMEvW83kiG1aMaKoV0mbc2_rTl8';
+
+        let supabaseClient = null;
+        if (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
+        const defaultTechnicians = [
+            { id: 1, fullName: "أحمد محمد الزليتني", specialty: "كهرباء", services: ["صيانة أعطال", "تمديد أسلاك", "لوحات توزيع"], keywords: ["كهربائي", "قاطع", "انارة", "فيش"], city: "مصراتة", area: "وسط المدينة", phone: "0912345671", rating: 4.9, initial: "أ", color: "bg-sky-100 text-sky-700" },
+            { id: 2, fullName: "سالم علي المحجوب", specialty: "سباكة", services: ["تسريب مياه", "تركيب مضخات", "خزانات وسخانات"], keywords: ["سباك", "مواسير", "ميه", "حمام", "مطبخ"], city: "مصراتة", area: "الرويسات", phone: "0923456782", rating: 4.8, initial: "س", color: "bg-amber-100 text-amber-700" },
+            { id: 3, fullName: "محمود إبراهيم الشارف", specialty: "تكييف", services: ["تعبئة فريون", "غسيل وصيانة", "تركيب مكيفات"], keywords: ["مكيف", "سبليت", "تبريد"], city: "مصراتة", area: "القرضابية", phone: "0914567893", rating: 5.0, initial: "م", color: "bg-rose-100 text-rose-700" },
+            { id: 4, fullName: "طارق حسين أبو شنب", specialty: "حدادة", services: ["أبواب وبوابات", "لحام وصيانة", "حماية نوافذ"], keywords: ["حداد", "حديد", "باب", "شباك"], city: "مصراتة", area: "زريق", phone: "0945678904", rating: 4.7, initial: "ط", color: "bg-emerald-100 text-emerald-700" },
+            { id: 5, fullName: "يوسف عبد السلام الفيتوري", specialty: "خدمات إنترنت", services: ["تمديد كوابل وشبكات", "ضبط راوتر وتقوية", "تركيب كاميرات"], keywords:["انترنت", "نت", "شبكة", "شبكات", "واي فاي", "wifi", "راوتر", "كابل", "كاميرا"], city: "مصراتة", area: "وسط المدينة", phone: "0915566778", rating: 4.9, initial: "ي", color: "bg-indigo-100 text-indigo-700" }
+        ];
+
+        const avatarColors = [
+            "bg-sky-100 text-sky-700",
+            "bg-amber-100 text-amber-700",
+            "bg-rose-100 text-rose-700",
+            "bg-emerald-100 text-emerald-700",
+            "bg-indigo-100 text-indigo-700"
+        ];
+
+        let technicians = [...defaultTechnicians];
+        let activeCustomer = null;
+        let selectedCategory = "";
+        let selectedTechnicianId = null;
+        let cameraStream = null;
+        let capturedSelfieData = null;
+
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            const msg = document.getElementById("toast-message");
+            msg.textContent = message;
+            toast.classList.remove("opacity-0", "pointer-events-none", "translate-y-[-20px]");
+            setTimeout(() => {
+                toast.classList.add("opacity-0", "pointer-events-none", "translate-y-[-20px]");
+            }, 2600);
+        }
+
+        function escapeHtml(value) {
+            return String(value || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        function escapeJs(value) {
+            return String(value || "")
+                .replace(/\\/g, "\\\\")
+                .replace(/'/g, "\\'");
+        }
+
+        function mapCloudTechnician(row, index) {
+            const name = row.full_name || "فني";
+            return {
+                id: row.id,
+                fullName: name,
+                specialty: row.specialty || "خدمات عامة",
+                services: Array.isArray(row.services) ? row.services : [],
+                keywords: Array.isArray(row.keywords) ? row.keywords : [],
+                city: row.city || "",
+                area: row.area || "",
+                phone: row.phone || "",
+                rating: Number(row.rating || 5).toFixed(1),
+                initial: name.trim().charAt(0) || "ف",
+                color: avatarColors[index % avatarColors.length]
+            };
+        }
+
+        async function loadTechniciansFromSupabase() {
+            if (!supabaseClient) {
+                renderTechnicians();
+                return;
+            }
+            try {
+                const { data, error } = await supabaseClient
+                    .from("technicians")
+                    .select("*")
+                    .order("created_at", { ascending: false });
+
+                if (!error && Array.isArray(data) && data.length > 0) {
+                    technicians = data.map((row, idx) => mapCloudTechnician(row, idx));
+                }
+            } catch (e) {
+                // الاحتفاظ بالقائمة الحالية عند تعذر الاتصال
+            }
+            renderTechnicians();
+        }
+
+        function renderTechnicians() {
+            const query = (document.getElementById("search-input").value || "").trim().toLowerCase();
+            const listEl = document.getElementById("technicians-list");
+            const countEl = document.getElementById("results-count");
+            const resetBtn = document.getElementById("reset-filter");
+
+            const filtered = technicians.filter(tech => {
+                const matchesCategory = !selectedCategory || (tech.specialty || "").includes(selectedCategory);
+                const haystack = [
+                    tech.fullName,
+                    tech.specialty,
+                    tech.city,
+                    tech.area,
+                    ...(tech.services || []),
+                    ...(tech.keywords || [])
+                ].join(" ").toLowerCase();
+                const matchesSearch = !query || haystack.includes(query);
+                return matchesCategory && matchesSearch;
+            });
+
+            countEl.textContent = `${filtered.length} نتيجة`;
+            resetBtn.classList.toggle("hidden", !selectedCategory && !query);
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-5 text-center border border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400">
+                        لا توجد نتائج مطابقة للبحث الحالي.
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(tech => `
+                <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-4 shadow-sm border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-3 space-x-reverse">
+                            <div class="w-11 h-11 rounded-2xl ${tech.color} font-extrabold text-base flex items-center justify-center shrink-0">
+                                ${escapeHtml(tech.initial)}
+                            </div>
+                            <div>
+                                <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">${escapeHtml(tech.fullName)}</h3>
+                                <p class="text-xs font-bold text-sky-600 dark:text-sky-400">${escapeHtml(tech.specialty)}</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400">${escapeHtml(tech.city)}${tech.area ? " - " + escapeHtml(tech.area) : ""}</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 text-xs font-extrabold shrink-0">
+                            ★ ${escapeHtml(String(tech.rating))}
+                        </span>
+                    </div>
+
+                    ${(tech.services && tech.services.length > 0) ? `
+                        <div class="flex flex-wrap gap-1.5">
+                            ${tech.services.map(s => `
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 text-[11px] font-semibold">
+                                    ${escapeHtml(s)}
+                                </span>
+                            `).join("")}
+                        </div>
+                    ` : ""}
+
+                    <div class="flex items-center gap-2 pt-1">
+                        <a href="tel:${escapeHtml(tech.phone)}" class="flex-1 text-center py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition">
+                            اتصال (${escapeHtml(tech.phone)})
+                        </a>
+                        <button onclick="openRatingModal(${tech.id}, '${escapeJs(tech.fullName)}')" class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-white text-xs font-bold transition">
+                            تقييم
+                        </button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function filterCategory(cat) {
+            selectedCategory = selectedCategory === cat ? "" : cat;
+            document.querySelectorAll(".category-btn").forEach(btn => {
+                const active = btn.getAttribute("data-cat") === selectedCategory;
+                btn.classList.toggle("opacity-100", active || !selectedCategory);
+                btn.classList.toggle("opacity-50", Boolean(selectedCategory) && !active);
+            });
+            renderTechnicians();
+        }
+
+        function resetFilters() {
+            selectedCategory = "";
+            document.getElementById("search-input").value = "";
+            document.getElementById("clear-search").classList.add("hidden");
+            document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("opacity-50"));
+            renderTechnicians();
+        }
+
+        function clearSearch() {
+            document.getElementById("search-input").value = "";
+            document.getElementById("clear-search").classList.add("hidden");
+            renderTechnicians();
+        }
+
+        document.getElementById("search-input").addEventListener("input", function () {
+            document.getElementById("clear-search").classList.toggle("hidden", !this.value.trim());
+            renderTechnicians();
+        });
+
+        // الوضع الليلي والنهاري
+        const themeToggle = document.getElementById("theme-toggle");
+        const sunIcon = document.getElementById("sun-icon");
+        const moonIcon = document.getElementById("moon-icon");
+
+        function syncThemeIcons() {
+            const isDark = document.documentElement.classList.contains("dark");
+            sunIcon.classList.toggle("hidden", !isDark);
+            moonIcon.classList.toggle("hidden", isDark);
+        }
+
+        themeToggle.addEventListener("click", () => {
+            document.documentElement.classList.toggle("dark");
+            syncThemeIcons();
+        });
+        syncThemeIcons();
+
+        // حساب العميل
+        function openCustomerLoginModal() {
+            document.getElementById("customer-login-modal").classList.remove("hidden");
+        }
+
+        function closeCustomerLoginModal() {
+            document.getElementById("customer-login-modal").classList.add("hidden");
+        }
+
+        function submitCustomerLogin() {
+            const name = document.getElementById("cust-name").value.trim();
+            const phone = document.getElementById("cust-phone").value.trim();
+            const city = document.getElementById("cust-city").value.trim();
+            const area = document.getElementById("cust-area").value.trim();
+            const agreed = document.getElementById("agree-customer-terms").checked;
+
+            if (!name || !phone || !city || !area) {
+                showToast("يرجى تعبئة جميع حقول العميل");
+                return;
+            }
+            if (!agreed) {
+                showToast("يرجى الموافقة على الشروط وسياسة الخصوصية");
+                return;
+            }
+
+            activeCustomer = { name, phone, city, area };
+            document.getElementById("customer-btn-label").textContent = name;
+            document.getElementById("active-customer-info").textContent = `${name} (${city} - ${area})`;
+            document.getElementById("customer-session-banner").classList.remove("hidden");
+            closeCustomerLoginModal();
+            showToast("تم تسجيل الدخول كعميل");
+        }
+
+        function logoutCustomer() {
+            activeCustomer = null;
+            document.getElementById("customer-btn-label").textContent = "دخول عميل";
+            document.getElementById("customer-session-banner").classList.add("hidden");
+            showToast("تم تسجيل الخروج");
+        }
+
+        // تسجيل فني والكاميرا
+        function openTechRegisterModal() {
+            document.getElementById("tech-register-modal").classList.remove("hidden");
+        }
+
+        function closeTechRegisterModal() {
+            stopCamera();
+            document.getElementById("tech-register-modal").classList.add("hidden");
+            capturedSelfieData = null;
+            document.getElementById("captured-selfie").classList.add("hidden");
+        }
+
+        async function startCamera() {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showToast("الكاميرا غير مدعومة في هذا المتصفح");
+                    return;
+                }
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+                const video = document.getElementById("camera-stream");
+                video.srcObject = cameraStream;
+                video.classList.remove("hidden");
+                document.getElementById("snap-btn").classList.remove("hidden");
+            } catch (e) {
+                showToast("تعذر الوصول للكاميرا أو لم يُمنح الإذن");
+            }
+        }
+
+        function takeSelfie() {
+            const video = document.getElementById("camera-stream");
+            const canvas = document.getElementById("camera-canvas");
+            if (!video.videoWidth) return;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+            capturedSelfieData = canvas.toDataURL("image/jpeg", 0.7);
+            const img = document.getElementById("captured-selfie");
+            img.src = capturedSelfieData;
+            img.classList.remove("hidden");
+            stopCamera();
+            showToast("تم التقاط الصورة الحية");
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(t => t.stop());
+                cameraStream = null;
+            }
+            document.getElementById("camera-stream").classList.add("hidden");
+            document.getElementById("snap-btn").classList.add("hidden");
+        }
+
+        async function submitTechnicianRegistration() {
+            const fullName = document.getElementById("reg-fullname").value.trim();
+            const phone = document.getElementById("reg-phone").value.trim();
+            const city = document.getElementById("reg-city").value.trim();
+            const area = document.getElementById("reg-area").value.trim();
+            const specialty = document.getElementById("reg-specialty").value.trim();
+            const servicesRaw = document.getElementById("reg-services").value.trim();
+            const agreed = document.getElementById("agree-terms").checked;
+
+            if (!fullName || !phone || !city || !area || !specialty) {
+                showToast("يرجى إكمال البيانات الأساسية للفني");
+                return;
+            }
+            if (!agreed) {
+                showToast("الموافقة على الشروط وسياسة الخصوصية إلزامية");
+                return;
+            }
+
+            const services = servicesRaw ? servicesRaw.split(",").map(s => s.trim()).filter(Boolean) : [];
+            const keywords = [fullName, specialty, city, area, ...services];
+
+            const payload = {
+                full_name: fullName,
+                phone: phone,
+                specialty: specialty,
+                city: city,
+                area: area,
+                services: services,
+                keywords: keywords,
+                rating: 5.0,
+                selfie_url: capturedSelfieData || null
+            };
+
+            if (supabaseClient) {
+                const { error } = await supabaseClient.from("technicians").insert([payload]);
+                if (error) {
+                    console.error(error);
+                    showToast("حدث خطأ أثناء الحفظ في Supabase");
+                    return;
+                }
+                await loadTechniciansFromSupabase();
+            } else {
+                technicians.unshift({
+                    id: Date.now(),
+                    fullName,
+                    specialty,
+                    services,
+                    keywords,
+                    city,
+                    area,
+                    phone,
+                    rating: "5.0",
+                    initial: fullName.charAt(0) || "ف",
+                    color: avatarColors[0]
+                });
+                renderTechnicians();
+            }
+
+            closeTechRegisterModal();
+            showToast("تم تسجيل حساب الفني وحفظه بنجاح!");
+        }
+
+        // الشروط والخصوصية
+        function openLegalModal() {
+            document.getElementById("legal-modal").classList.remove("hidden");
+        }
+        function closeLegalModal() {
+            document.getElementById("legal-modal").classList.add("hidden");
+        }
+
+        // التقييم
+        function openRatingModal(techId, techName) {
+            selectedTechnicianId = techId;
+            document.getElementById("modal-tech-title").textContent = techName;
+            switchTab("tech");
+            document.getElementById("rating-modal").classList.remove("hidden");
+        }
+
+        function closeRatingModal() {
+            selectedTechnicianId = null;
+            document.getElementById("rating-modal").classList.add("hidden");
+        }
+
+        function switchTab(tab) {
+            const isTech = tab === "tech";
+            document.getElementById("form-rate-tech").classList.toggle("hidden", !isTech);
+            document.getElementById("form-rate-customer").classList.toggle("hidden", isTech);
+
+            const techTab = document.getElementById("tab-rate-tech");
+            const custTab = document.getElementById("tab-rate-customer");
+
+            if (isTech) {
+                techTab.className = "py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm transition";
+                custTab.className = "py-2 rounded-xl text-slate-500 dark:text-slate-400 transition";
+            } else {
+                custTab.className = "py-2 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm transition";
+                techTab.className = "py-2 rounded-xl text-slate-500 dark:text-slate-400 transition";
+            }
+        }
+
+        async function submitTechRating() {
+            if (!selectedTechnicianId) return;
+            const speed = Number(document.getElementById("rate-speed").value);
+            const punctuality = Number(document.getElementById("rate-punctuality").value);
+            const quality = Number(document.getElementById("rate-quality").value);
+            const price = Number(document.getElementById("rate-price").value);
+            const avg = Number(((speed + punctuality + quality + price) / 4).toFixed(1));
+
+            if (supabaseClient) {
+                await supabaseClient.from("technician_reviews").insert([{
+                    technician_id: selectedTechnicianId,
+                    speed,
+                    punctuality,
+                    quality,
+                    price,
+                    average_score: avg
+                }]);
+
+                await supabaseClient
+                    .from("technicians")
+                    .update({ rating: avg })
+                    .eq("id", selectedTechnicianId);
+
+                await loadTechniciansFromSupabase();
+            } else {
+                technicians = technicians.map(t =>
+                    t.id === selectedTechnicianId ? { ...t, rating: avg.toFixed(1) } : t
+                );
+                renderTechnicians();
+            }
+
+            closeRatingModal();
+            showToast("تم اعتماد تقييم الفني بنجاح!");
+        }
+
+        async function submitCustomerRating() {
+            if (!selectedTechnicianId) return;
+            const identifier = document.getElementById("customer-identifier").value.trim();
+            const stars = Number(document.getElementById("customer-stars").value);
+            const note = document.getElementById("customer-note").value.trim();
+
+            if (!identifier) {
+                showToast("يرجى إدخال اسم أو رقم هاتف الزبون");
+                return;
+            }
+
+            if (supabaseClient) {
+                await supabaseClient.from("technician_reviews").insert([{
+                    technician_id: selectedTechnicianId,
+                    speed: stars,
+                    punctuality: stars,
+                    quality: stars,
+                    price: stars,
+                    average_score: stars,
+                    comment: `[تقييم زبون: ${identifier}] ${note}`
+                }]);
+            }
+
+            document.getElementById("customer-identifier").value = "";
+            document.getElementById("customer-note").value = "";
+            closeRatingModal();
+            showToast("تم حفظ تقييم الزبون بنجاح!");
+        }
+
+        loadTechniciansFromSupabase();
+    </script>
+</body>
+</html>
